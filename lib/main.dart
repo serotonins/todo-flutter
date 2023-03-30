@@ -11,14 +11,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Todo Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'I dont wanna do 한글도 써주나요'),
     );
   }
 }
@@ -34,6 +32,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  bool? _checkBoxValue1 = false;
 
   void _incrementCounter() {
     setState(() {
@@ -41,6 +40,10 @@ class _MyHomePageState extends State<MyHomePage> {
       _counter++;
     });
   }
+
+  // void _addtodo() {
+  //
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +67,31 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Checkbox(
+                  activeColor: Colors.deepPurple[50], // 체크됐을 때 체크박스의 컬러
+                  checkColor: Colors.blue, // 체크표시의 컬러
+                  value: _checkBoxValue1, // 체크박스의 값
+                  onChanged: (value) {
+                    setState(() {
+                      _checkBoxValue1 = value;
+                    });
+                  },
+                ),
+                // TextField(
+                //   style: TextStyle(fontSize: 32, color: Colors.red),
+                //   textAlign: TextAlign.center,
+                //   decoration: InputDecoration(hintText: '입력 오네가이'),
+                //   onChanged: (String todotext) {
+                //     setState(() {
+                //
+                //     });
+                //   },
+                // )
+              ]
+            )
           ],
         ),
       ),
