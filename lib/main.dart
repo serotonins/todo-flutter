@@ -71,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Checkbox(
-                  activeColor: Colors.deepPurple[50], // 체크됐을 때 체크박스의 컬러
+                  activeColor: Colors.deepPurple[10], // 체크됐을 때 체크박스의 컬러
                   checkColor: Colors.blue, // 체크표시의 컬러
                   value: _checkBoxValue1, // 체크박스의 값
                   onChanged: (value) {
