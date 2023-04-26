@@ -127,6 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 await jdatePicker(DateTime.now());
                                 setState(() {
                                   _startDate = _selectedDate;
+                                  _endDate = _startDate;
                                 });
                                 print(_startDate);
                               },
