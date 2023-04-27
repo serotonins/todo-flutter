@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/intl.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+// import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+// import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 // import 'screen/addTodoScreen.dart';
 
 // 필요 1
@@ -60,13 +60,23 @@ class _MyHomePageState extends State<MyHomePage> {
       _todoController.text = '';
     });
   }
-  
+
   void _deleteTodo(TodoType todo) {
     setState(() {
       _todoListItem.remove(todo);
     });
   }
-  
+
+  void _editTodo(TodoType todo, TodoType changed) {
+    setState(() {
+      todo.title = changed.title;
+      todo.startDate = changed.startDate;
+      todo.endDate = changed.endDate;
+
+      _todoController.text = '';
+    });
+  }
+
   void _donecheckTodo(TodoType todo) {
     setState(() {
       todo.isDone = !todo.isDone;
@@ -85,10 +95,10 @@ class _MyHomePageState extends State<MyHomePage> {
     _selectedDate = jdate;
 
     DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: jdate,
-        firstDate: jdate,
-        lastDate: DateTime(2999),
+      context: context,
+      initialDate: jdate,
+      firstDate: jdate,
+      lastDate: DateTime(2999),
     );
     if (picked != null) { setState(() {
       _selectedDate = picked;
@@ -111,30 +121,29 @@ class _MyHomePageState extends State<MyHomePage> {
         context: context,
         builder: (_) {
           return AlertDialog(
-            title: Text("할 일이 또 있나요?", style: TextStyle(fontSize: 15),),
-            content: StatefulBuilder(
-                builder: (__, StateSetter setState) {
-                  return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextField(
-                          controller: _todoController,
-                        ),
-                        Row(
-                          children: [
-                            TextButton(
-                              onPressed: () async {
-                                await jdatePicker(DateTime.now());
-                                setState(() {
-                                  _startDate = _selectedDate;
-                                  _endDate = _startDate;
-                                });
-                                print(_startDate);
-                              },
-                              child: Text(DateFormat('yyyy/MM/dd HH:mm').format(_startDate)),
-                            ),
-                            Text(" 부터  "),
-                            TextButton(
+              title: Text("할 일이 또 있나요?", style: TextStyle(fontSize: 15),),
+              content: StatefulBuilder(
+                  builder: (__, StateSetter setState) {
+                    return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextField(
+                            controller: _todoController,
+                          ),
+                          Row(
+                            children: [
+                              TextButton(
+                                onPressed: () async {
+                                  await jdatePicker(DateTime.now());
+                                  setState(() {
+                                    _startDate = _selectedDate;
+                                    _endDate = _startDate;
+                                  });
+                                },
+                                child: Text(DateFormat('yyyy/MM/dd HH:mm').format(_startDate)),
+                              ),
+                              Text(" 부터  "),
+                              TextButton(
                                 onPressed: () async {
                                   await jdatePicker(_startDate);
                                   setState(() {
@@ -142,23 +151,85 @@ class _MyHomePageState extends State<MyHomePage> {
                                   });
                                 },
                                 child: Text(DateFormat('yyyy/MM/dd HH:mm').format(_endDate)),
-                            ),
-                            Text(" 까지"),
-                          ],
-                        )
-                      ]
-                  );
-                }
-            ),
-            actions: <Widget>[
-              TextButton(
+                              ),
+                              Text(" 까지"),
+                            ],
+                          )
+                        ]
+                    );
+                  }
+              ),
+              actions: <Widget>[
+                TextButton(
                   onPressed: () {
                     _addTodo(TodoType(_todoController.text, _startDate, _endDate));
                     Navigator.pop(context);
                   },
                   child: Text('추가', style: TextStyle(color: Colors.indigo),),
-              )
-            ]
+                )
+              ]
+          );
+        }
+    );
+  }
+
+  // todo 변경하는 alert dialog !
+  Future<dynamic> showEditStatefulDialogBuilder(BuildContext context, TodoType todo) async {
+    DateTime _startDate = todo.startDate!;
+    DateTime _endDate = todo.endDate!;
+    _todoController.text = todo.title;
+
+    await showDialog<void>(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            // title: Text("할 일이 또 있나요?", style: TextStyle(fontSize: 15),),
+              content: StatefulBuilder(
+                  builder: (__, StateSetter setState) {
+                    return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextField(
+                            controller: _todoController,
+                          ),
+                          Row(
+                            children: [
+                              TextButton(
+                                onPressed: () async {
+                                  await jdatePicker(DateTime.now());
+                                  setState(() {
+                                    _startDate = _selectedDate;
+                                    _endDate = _startDate;
+                                  });
+                                },
+                                child: Text(DateFormat('yyyy/MM/dd HH:mm').format(_startDate)),
+                              ),
+                              Text(" 부터  "),
+                              TextButton(
+                                onPressed: () async {
+                                  await jdatePicker(_startDate);
+                                  setState(() {
+                                    _endDate = _selectedDate;
+                                  });
+                                },
+                                child: Text(DateFormat('yyyy/MM/dd HH:mm').format(_endDate)),
+                              ),
+                              Text(" 까지"),
+                            ],
+                          )
+                        ]
+                    );
+                  }
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    _editTodo(todo, TodoType(_todoController.text, _startDate, _endDate));
+                    Navigator.pop(context);
+                  },
+                  child: Text('수정', style: TextStyle(color: Colors.indigo),),
+                )
+              ]
           );
         }
     );
@@ -175,53 +246,53 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: AppBar(
+        appBar: AppBar(
 
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-        actions: <Widget>[],
-      ),
-      body: Center(
-        child: Column(
-          // mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Expanded(
-              child: ListView(
-                children: _todoListItem.map((todo) => _buildTodoListWidget(todo)).toList(),
-              )
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Switch(
-                  activeColor: Colors.indigo, // 활성화 시 Thumb(콩알) 컬러
-                  activeTrackColor: Colors.blueAccent[100], // 활성화 시 스위치 바탕 컬러
-                  inactiveThumbColor: Colors.green, // 비활성화 시 콩알 컬러
-                  inactiveTrackColor: Colors.white, // 비활성화 시 스위치 바탕색
-                  // trackColor: MaterialStateProperty.all(Colors.yellow), // 활성화건 비활성화건 무조건 스위치 바탕색은 이것(바뀌게 하고 싶으면 쓰지마)
-                  // thumbColor: MaterialStateProperty.all(Colors.green), // 활성화했건 비활성화했건 무조건 Thumb 컬러는 이것(바뀌게 하고 싶으면 쓰지마)
-                  value: _checkBoxValue1!, // 스위치 값
-                  onChanged: (value) {
-                    setState(() {
-                      _checkBoxValue1 = value;
-                      _changetodo(value!);
-                    });
-                  },
-                ),
-                Text(
-                  _cTodo,
-                )
-              ]
-            ),
-            // Text(DateFormat('yyyy/MM/dd \nHH:mm').format(DateTime.now())) // 관찰용
-          ],
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(widget.title),
+          actions: <Widget>[],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {showStatefulDialogBuilder(context);},
-        tooltip: '추가',
-        child: const Icon(Icons.add),
-      )
+        body: Center(
+          child: Column(
+            // mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Expanded(
+                  child: ListView(
+                    children: _todoListItem.map((todo) => _buildTodoListWidget(todo)).toList(),
+                  )
+              ),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Switch(
+                      activeColor: Colors.indigo, // 활성화 시 Thumb(콩알) 컬러
+                      activeTrackColor: Colors.blueAccent[100], // 활성화 시 스위치 바탕 컬러
+                      inactiveThumbColor: Colors.green, // 비활성화 시 콩알 컬러
+                      inactiveTrackColor: Colors.white, // 비활성화 시 스위치 바탕색
+                      // trackColor: MaterialStateProperty.all(Colors.yellow), // 활성화건 비활성화건 무조건 스위치 바탕색은 이것(바뀌게 하고 싶으면 쓰지마)
+                      // thumbColor: MaterialStateProperty.all(Colors.green), // 활성화했건 비활성화했건 무조건 Thumb 컬러는 이것(바뀌게 하고 싶으면 쓰지마)
+                      value: _checkBoxValue1!, // 스위치 값
+                      onChanged: (value) {
+                        setState(() {
+                          _checkBoxValue1 = value;
+                          _changetodo(value!);
+                        });
+                      },
+                    ),
+                    Text(
+                      _cTodo,
+                    )
+                  ]
+              ),
+              // Text(DateFormat('yyyy/MM/dd \nHH:mm').format(DateTime.now())) // 관찰용
+            ],
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {showStatefulDialogBuilder(context);},
+          tooltip: '추가',
+          child: const Icon(Icons.add),
+        )
       // multipleFloatingButton(), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
@@ -270,48 +341,57 @@ class _MyHomePageState extends State<MyHomePage> {
   // 투두 리스트 그려주는 위젯
   Widget _buildTodoListWidget(TodoType todo) {
     return ListTile(
-      onTap: () => _donecheckTodo(todo),
-      trailing: IconButton( // 끝쪽(오른쪽)에, 왼쪽에 두고싶으면 leading 파라미터에 주기
-        icon: Icon(Icons.delete),
-        onPressed: () => _deleteTodo(todo),
-      ),
-      title:
+        onTap: () => _donecheckTodo(todo),
+        trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton( // 끝쪽(오른쪽)에, 왼쪽에 두고싶으면 leading 파라미터에 주기
+                icon: Icon(Icons.edit),
+                onPressed: () => showEditStatefulDialogBuilder(context, todo),
+              ),
+              IconButton( // 끝쪽(오른쪽)에, 왼쪽에 두고싶으면 leading 파라미터에 주기
+                icon: Icon(Icons.delete),
+                onPressed: () => _deleteTodo(todo),
+              ),
+            ]
+        ),
+        title:
         Row(
-          children: [
-            Checkbox(
-              activeColor: Colors.black45,
-              checkColor: Colors.white,
-              value: todo.isDone,
-              onChanged: (value) {
-                setState(() {
-                  todo.isDone = value!;
-                });
-              }
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children : [
-                Text(
-                  todo.title,
-                  style: todo.isDone?
+            children: [
+              Checkbox(
+                  activeColor: Colors.black45,
+                  checkColor: Colors.white,
+                  value: todo.isDone,
+                  onChanged: (value) {
+                    setState(() {
+                      todo.isDone = value!;
+                    });
+                  }
+              ),
+              Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children : [
+                    Text(
+                      todo.title,
+                      style: todo.isDone?
                       TextStyle(
                         decoration: TextDecoration.lineThrough,
                         fontStyle: FontStyle.italic,
                       ) : null, // 완료 전이면 취소선 안 긋고 아무 짓 안 한다는 표시
-                ),
-                Text(
-                  DateFormat('yyyy/MM/dd HH:mm').format(todo.startDate!)
-                    + ' 부터  '
-                    + DateFormat('yyyy/MM/dd HH:mm').format(todo.endDate!)
-                    + ' 까지 '
-                    ,
-                  style: (todo.endDate!.compareTo(DateTime.now()) == 1)?
-                      TextStyle(fontSize: 12, color: Colors.black45)
-                      : TextStyle(fontSize: 12, color: Colors.red[200])
-                ),
-              ]
-            )
-          ]
+                    ),
+                    Text(
+                        DateFormat('yyyy/MM/dd HH:mm').format(todo.startDate!)
+                            + ' 부터  '
+                            + DateFormat('yyyy/MM/dd HH:mm').format(todo.endDate!)
+                            + ' 까지 '
+                        ,
+                        style: (todo.endDate!.compareTo(DateTime.now()) == 1)?
+                        TextStyle(fontSize: 12, color: Colors.black45)
+                            : TextStyle(fontSize: 12, color: Colors.red[200])
+                    ),
+                  ]
+              )
+            ]
         )
     );
   }
