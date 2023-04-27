@@ -58,6 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _todoListItem.add(todo);
       _todoController.text = '';
+      _changeSortMethodExecute(_checkBoxValue1!);
     });
   }
 
@@ -74,6 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
       todo.endDate = changed.endDate;
 
       _todoController.text = '';
+      _changeSortMethodExecute(_checkBoxValue1!);
     });
   }
 
@@ -83,10 +85,18 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _changetodo(bool ma) {
+  void _changeSortMethod(bool ma) {
     setState(() {
       if (ma == true) {_cTodo = '마감일 기준';}
-      else {_cTodo = '시작일 기준';};
+      else {_cTodo = '시작일 기준';}
+      _changeSortMethodExecute(ma);
+    });
+  }
+
+  void _changeSortMethodExecute(bool ma) {
+    setState(() {
+      if (ma == true) { _todoListItem.sort((x, y) => x.endDate!.compareTo(y.endDate!)); }
+      else { _todoListItem.sort((x, y) => x.startDate!.compareTo(y.startDate!)); }
     });
   }
 
@@ -275,7 +285,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       onChanged: (value) {
                         setState(() {
                           _checkBoxValue1 = value;
-                          _changetodo(value!);
+                          _changeSortMethod(value!);
                         });
                       },
                     ),
@@ -296,47 +306,6 @@ class _MyHomePageState extends State<MyHomePage> {
       // multipleFloatingButton(), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
-
-  // multiplefloatingbutton
-  // Widget? multipleFloatingButton() {
-  //   return SpeedDial(
-  //     animatedIcon: AnimatedIcons.menu_close,
-  //     visible: true,
-  //     curve: Curves.bounceIn,
-  //     // shape: CircleBorder(),
-  //     backgroundColor: Colors.indigo[100],
-  //     children: [
-  //       SpeedDialChild(
-  //         child: const Icon(Icons.settings_sharp, color: Colors.indigo,),
-  //         shape: CircleBorder(),
-  //         backgroundColor: Colors.indigo[100],
-  //         label: "설정",
-  //         labelBackgroundColor: Colors.indigo[50],
-  //         labelStyle: const TextStyle(
-  //           fontWeight: FontWeight.w500,
-  //           color: Colors.black54,
-  //           fontSize: 13.0
-  //         ),
-  //         onTap: () {}
-  //       ),
-  //       SpeedDialChild(
-  //         child: const Icon(Icons.add, color: Colors.indigo,),
-  //         shape: CircleBorder(),
-  //         backgroundColor: Colors.indigo[100],
-  //         label: "할 일 추가",
-  //         labelBackgroundColor: Colors.indigo[50],
-  //         labelStyle: const TextStyle(
-  //           fontWeight: FontWeight.w500,
-  //           color: Colors.black54,
-  //           fontSize: 13.0
-  //         ),
-  //         onTap: () {
-  //           showStatefulDialogBuilder(context);
-  //         },
-  //       )
-  //     ],
-  //   );
-  // }
 
   // 투두 리스트 그려주는 위젯
   Widget _buildTodoListWidget(TodoType todo) {
