@@ -17,12 +17,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Todo Demo',
+      title: 'Priority Planner',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: '일정을 정리해 봅시다.'),
+      debugShowCheckedModeBanner: false,
+      home: const MyHomePage(title: 'Priority Planner'),
     );
   }
 }
@@ -112,14 +113,17 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     if (picked != null) { setState(() {
       _selectedDate = picked;
-    });}
+    });
 
-    TimeOfDay? tpicked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (tpicked != null && _selectedDate != null) {
-      setState(() {
-        _selectedDate = _selectedDate.add(Duration(hours: tpicked.hour, minutes: tpicked.minute));
-      });
+      TimeOfDay? tpicked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+      if (tpicked != null && _selectedDate != null) {
+        setState(() {
+          _selectedDate = _selectedDate.add(Duration(hours: tpicked.hour, minutes: tpicked.minute));
+        });
+      }
     }
+
+
   }
 
   // todo 추가하는 alert dialog
@@ -131,7 +135,7 @@ class _MyHomePageState extends State<MyHomePage> {
         context: context,
         builder: (_) {
           return AlertDialog(
-              title: Text("할 일이 또 있나요?", style: TextStyle(fontSize: 15),),
+              title: Text("작업 추가하기", style: TextStyle(fontSize: 15),),
               content: StatefulBuilder(
                   builder: (__, StateSetter setState) {
                     return Column(
