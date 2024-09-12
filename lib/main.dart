@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 // import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 // import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 // import 'screen/addTodoScreen.dart';
@@ -55,6 +57,12 @@ class _MyHomePageState extends State<MyHomePage> {
   var _dateTimeEditingController = TextEditingController(); // 날짜 받아오는 컨트롤러도 하나 만들어줌
   DateTime _selectedDate = DateTime.now();
 
+  @override
+  void initState() {
+    super.initState();
+    _loadTodos(); // 앱 시작 시 Todos 로드
+  }
+
   void _addTodo(TodoType todo) { // 리스트에 투두 아이템 하나 추가
     setState(() {
       _todoListItem.add(todo);
@@ -66,6 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _deleteTodo(TodoType todo) {
     setState(() {
       _todoListItem.remove(todo);
+      _saveTodos();
     });
   }
 
@@ -77,12 +86,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
       _todoController.text = '';
       _changeSortMethodExecute(_checkBoxValue1!);
+
+      _saveTodos();
     });
   }
 
   void _donecheckTodo(TodoType todo) {
     setState(() {
       todo.isDone = !todo.isDone;
+      _saveTodos();
     });
   }
 
@@ -122,8 +134,37 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     }
+  }
 
+  // 저장하는 함수
+  Future<void> _saveTodos() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> todos = _todoListItem.map((todo) => json.encode({
+      'title': todo.title,
+      'startDate': todo.startDate?.toIso8601String() ?? '',
+      'endDate': todo.endDate?.toIso8601String() ?? '',
+      'isDone': todo.isDone,
+    })).toList();
+    await prefs.setStringList('todos', todos);
+  }
 
+  // 불러오는 함수
+  Future<void> _loadTodos() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? todos = prefs.getStringList('todos');
+    if (todos != null) {
+      setState(() {
+        _todoListItem.clear();
+        for (String todo in todos) {
+          Map<String, dynamic> todoData = json.decode(todo);
+          _todoListItem.add(TodoType(
+            todoData['title'],
+            DateTime.parse(todoData['startDate']),
+            DateTime.parse(todoData['endDate']),
+          )..isDone = todoData['isDone']);
+        }
+      });
+    }
   }
 
   // todo 추가하는 alert dialog
@@ -154,7 +195,22 @@ class _MyHomePageState extends State<MyHomePage> {
                                     _endDate = _startDate;
                                   });
                                 },
-                                child: Text(DateFormat('yyyy/MM/dd HH:mm').format(_startDate)),
+                                child: //Text(DateFormat('yyyy/MM/dd HH:mm').format(_startDate)),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        DateFormat('yyyy/MM/dd').format(_startDate),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                      Text(
+                                        DateFormat('HH:mm').format(_startDate),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                    ],
+                                  ),
                               ),
                               Text(" 부터  "),
                               TextButton(
@@ -164,7 +220,22 @@ class _MyHomePageState extends State<MyHomePage> {
                                     _endDate = _selectedDate;
                                   });
                                 },
-                                child: Text(DateFormat('yyyy/MM/dd HH:mm').format(_endDate)),
+                                child: //Text(DateFormat('yyyy/MM/dd HH:mm').format(_endDate)),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        DateFormat('yyyy/MM/dd').format(_endDate),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                      Text(
+                                        DateFormat('HH:mm').format(_endDate),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                    ],
+                                  ),
                               ),
                               Text(" 까지"),
                             ],
@@ -177,6 +248,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 TextButton(
                   onPressed: () {
                     _addTodo(TodoType(_todoController.text, _startDate, _endDate));
+                    _saveTodos();
                     Navigator.pop(context);
                   },
                   child: Text('추가', style: TextStyle(color: Colors.indigo),),
@@ -187,67 +259,212 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // todo 변경하는 alert dialog !
+  // Future<dynamic> showEditStatefulDialogBuilder(BuildContext context, TodoType todo) async {
+  //   DateTime _startDate = todo.startDate!;
+  //   DateTime _endDate = todo.endDate!;
+  //   _todoController.text = todo.title;
+  //
+  //   await showDialog<void>(
+  //     context: context,
+  //     builder: (_) {
+  //       return AlertDialog(
+  //         content: Container(
+  //           width: double.maxFinite, // 너비를 최대화
+  //           constraints: BoxConstraints(maxHeight: 300), // 최대 높이 설정
+  //           child: StatefulBuilder(
+  //             builder: (__, StateSetter setState) {
+  //               return SingleChildScrollView( // 스크롤 가능하게 감싸기
+  //                 child: Column(
+  //                   mainAxisSize: MainAxisSize.min,
+  //                   children: [
+  //                     TextField(
+  //                       controller: _todoController,
+  //                       maxLines: null, // 여러 줄 입력 가능
+  //                       decoration: InputDecoration(
+  //                         hintText: '할 일을 입력하세요',
+  //                         counterText: '', // 길이 카운터 숨기기
+  //                       ),
+  //                     ),
+  //                     Row(
+  //                       children: [
+  //                         TextButton(
+  //                           onPressed: () async {
+  //                             await jdatePicker(DateTime.now());
+  //                             setState(() {
+  //                               _startDate = _selectedDate;
+  //                               _endDate = _startDate;
+  //                             });
+  //                           },
+  //                           child: Column(
+  //                             crossAxisAlignment: CrossAxisAlignment.start,
+  //                             children: [
+  //                               Text(
+  //                                 DateFormat('yyyy/MM/dd').format(_startDate),
+  //                                 overflow: TextOverflow.ellipsis,
+  //                                 maxLines: 1,
+  //                               ),
+  //                               Text(
+  //                                 DateFormat('HH:mm').format(_startDate),
+  //                                 overflow: TextOverflow.ellipsis,
+  //                                 maxLines: 1,
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                         Text(" 부터  "),
+  //                         TextButton(
+  //                           onPressed: () async {
+  //                             await jdatePicker(_startDate);
+  //                             setState(() {
+  //                               _endDate = _selectedDate;
+  //                             });
+  //                           },
+  //                           child: Column(
+  //                             crossAxisAlignment: CrossAxisAlignment.start,
+  //                             children: [
+  //                               Text(
+  //                                 DateFormat('yyyy/MM/dd').format(_endDate),
+  //                                 overflow: TextOverflow.ellipsis,
+  //                                 maxLines: 1,
+  //                               ),
+  //                               Text(
+  //                                 DateFormat('HH:mm').format(_endDate),
+  //                                 overflow: TextOverflow.ellipsis,
+  //                                 maxLines: 1,
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                         Text(" 까지"),
+  //                       ],
+  //                     ),
+  //                   ],
+  //                 ),
+  //               );
+  //             },
+  //           ),
+  //         ),
+  //         actions: <Widget>[
+  //           TextButton(
+  //             onPressed: () {
+  //               _editTodo(todo, TodoType(_todoController.text, _startDate, _endDate));
+  //               _todoController.clear();
+  //               Navigator.pop(context);
+  //             },
+  //             child: Text('수정', style: TextStyle(color: Colors.indigo)),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
   Future<dynamic> showEditStatefulDialogBuilder(BuildContext context, TodoType todo) async {
     DateTime _startDate = todo.startDate!;
     DateTime _endDate = todo.endDate!;
     _todoController.text = todo.title;
 
     await showDialog<void>(
-        context: context,
-        builder: (_) {
-          return AlertDialog(
-            // title: Text("할 일이 또 있나요?", style: TextStyle(fontSize: 15),),
-              content: StatefulBuilder(
-                  builder: (__, StateSetter setState) {
-                    return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextField(
-                            controller: _todoController,
+      context: context,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () {
+            _todoController.clear(); // 텍스트 내용 비우기
+            return Future.value(true); // 다이얼로그 닫기
+          },
+          child: AlertDialog(
+            content: Container(
+              width: double.maxFinite, // 너비를 최대화
+              constraints: BoxConstraints(maxHeight: 300), // 최대 높이 설정
+              child: StatefulBuilder(
+                builder: (__, StateSetter setState) {
+                  return SingleChildScrollView( // 스크롤 가능하게 감싸기
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                          controller: _todoController,
+                          maxLines: null, // 여러 줄 입력 가능
+                          decoration: InputDecoration(
+                            hintText: '할 일을 입력하세요',
+                            counterText: '', // 길이 카운터 숨기기
                           ),
-                          Row(
-                            children: [
-                              TextButton(
-                                onPressed: () async {
-                                  await jdatePicker(DateTime.now());
-                                  setState(() {
-                                    _startDate = _selectedDate;
-                                    _endDate = _startDate;
-                                  });
-                                },
-                                child: Text(DateFormat('yyyy/MM/dd HH:mm').format(_startDate)),
+                        ),
+                        Row(
+                          children: [
+                            TextButton(
+                              onPressed: () async {
+                                await jdatePicker(DateTime.now());
+                                setState(() {
+                                  _startDate = _selectedDate;
+                                  _endDate = _startDate;
+                                });
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    DateFormat('yyyy/MM/dd').format(_startDate),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                  Text(
+                                    DateFormat('HH:mm').format(_startDate),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ],
                               ),
-                              Text(" 부터  "),
-                              TextButton(
-                                onPressed: () async {
-                                  await jdatePicker(_startDate);
-                                  setState(() {
-                                    _endDate = _selectedDate;
-                                  });
-                                },
-                                child: Text(DateFormat('yyyy/MM/dd HH:mm').format(_endDate)),
+                            ),
+                            Text(" 부터  "),
+                            TextButton(
+                              onPressed: () async {
+                                await jdatePicker(_startDate);
+                                setState(() {
+                                  _endDate = _selectedDate;
+                                });
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    DateFormat('yyyy/MM/dd').format(_endDate),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                  Text(
+                                    DateFormat('HH:mm').format(_endDate),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ],
                               ),
-                              Text(" 까지"),
-                            ],
-                          )
-                        ]
-                    );
-                  }
+                            ),
+                            Text(" 까지"),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    _editTodo(todo, TodoType(_todoController.text, _startDate, _endDate));
-                    Navigator.pop(context);
-                  },
-                  child: Text('수정', style: TextStyle(color: Colors.indigo),),
-                )
-              ]
-          );
-        }
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  _editTodo(todo, TodoType(_todoController.text, _startDate, _endDate));
+                  _todoController.clear(); // 텍스트 내용 비우기
+                  Navigator.pop(context);
+                },
+                child: Text('수정', style: TextStyle(color: Colors.indigo)),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
+
+
 
   @override
   void dispose() {
@@ -311,61 +528,113 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // 투두 리스트 그려주는 위젯
   Widget _buildTodoListWidget(TodoType todo) {
     return ListTile(
-        onTap: () => _donecheckTodo(todo),
-        trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton( // 끝쪽(오른쪽)에, 왼쪽에 두고싶으면 leading 파라미터에 주기
-                icon: Icon(Icons.edit),
-                onPressed: () => showEditStatefulDialogBuilder(context, todo),
-              ),
-              IconButton( // 끝쪽(오른쪽)에, 왼쪽에 두고싶으면 leading 파라미터에 주기
-                icon: Icon(Icons.delete),
-                onPressed: () => _deleteTodo(todo),
-              ),
-            ]
-        ),
-        title:
-        Row(
-            children: [
-              Checkbox(
-                  activeColor: Colors.black45,
-                  checkColor: Colors.white,
-                  value: todo.isDone,
-                  onChanged: (value) {
-                    setState(() {
-                      todo.isDone = value!;
-                    });
-                  }
-              ),
-              Column(
+      onTap: () => _donecheckTodo(todo),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: () => showEditStatefulDialogBuilder(context, todo),
+          ),
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () => _deleteTodo(todo),
+          ),
+        ],
+      ),
+      title: Row(
+        children: [
+          Checkbox(
+            activeColor: Colors.black45,
+            checkColor: Colors.white,
+            value: todo.isDone,
+            onChanged: (value) {
+              setState(() {
+                todo.isDone = value!;
+              });
+            },
+          ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                bool isSpaceLimited = constraints.maxWidth < MediaQuery.of(context).size.width * 0.55;
+                // double screenWidth = MediaQuery.of(context).size.width;
+                // bool isSpaceLimited = constraints.maxWidth < screenWidth * 0.3;
+
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children : [
-                    Text(
-                      todo.title,
-                      style: todo.isDone?
-                      TextStyle(
-                        decoration: TextDecoration.lineThrough,
-                        fontStyle: FontStyle.italic,
-                      ) : null, // 완료 전이면 취소선 안 긋고 아무 짓 안 한다는 표시
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          fit: FlexFit.loose,
+                          child: Text(
+                            todo.title,
+                            style: todo.isDone
+                                ? TextStyle(
+                              decoration: TextDecoration.lineThrough,
+                              fontStyle: FontStyle.italic,
+                            )
+                                : null,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                        DateFormat('yyyy/MM/dd HH:mm').format(todo.startDate!)
-                            + ' 부터  '
-                            + DateFormat('yyyy/MM/dd HH:mm').format(todo.endDate!)
-                            + ' 까지 '
-                        ,
-                        style: (todo.endDate!.compareTo(DateTime.now()) == 1)?
-                        TextStyle(fontSize: 12, color: Colors.black45)
-                            : TextStyle(fontSize: 12, color: Colors.red[200])
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _formatDateFrom(todo.startDate!, isShort: isSpaceLimited),
+                            style: (todo.endDate!.compareTo(DateTime.now()) == 1)
+                                ? TextStyle(fontSize: 12, color: Colors.black45)
+                                : TextStyle(fontSize: 12, color: Colors.red[200]),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            _formatDateTo(todo.endDate!, isShort: isSpaceLimited),
+                            style: (todo.endDate!.compareTo(DateTime.now()) == 1)
+                                ? TextStyle(fontSize: 12, color: Colors.black45)
+                                : TextStyle(fontSize: 12, color: Colors.red[200]),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
                     ),
-                  ]
-              )
-            ]
-        )
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
+
+// 날짜 포맷팅 함수
+  String _formatDateFrom(DateTime date, {bool isShort = false}) {
+    if (isShort) {
+      return DateFormat('MM/dd HH:mm').format(date) + ' ~'; // 연도를 두 자리로
+    } else {
+      return DateFormat('yyyy/MM/dd HH:mm').format(date) + '부터'; // 기본 포맷
+    }
+  }
+
+  String _formatDateTo(DateTime date, {bool isShort = false}) {
+    if (isShort) {
+      return DateFormat('MM/dd HH:mm').format(date); // 연도를 두 자리로
+    } else {
+      return DateFormat('yyyy/MM/dd HH:mm').format(date) + '까지'; // 기본 포맷
+    }
+  }
+
 }
