@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-// import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-// import 'package:syncfusion_flutter_datepicker/datepicker.dart';
-// import 'screen/addTodoScreen.dart';
 
 // 필요 1
 void main() {
@@ -21,7 +18,23 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Priority Planner',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: Colors.indigo,
+          backgroundColor: Colors.white,
+          accentColor: Colors.green
+        ).copyWith(
+          primary: Colors.indigo, // 명시적으로 primary 색상 설정
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.indigo, // 앱 바의 배경색
+          titleTextStyle: TextStyle(
+            color: Colors.white, // 타이틀 텍스트 색상
+            fontSize: 20, // 폰트 크기
+            fontWeight: FontWeight.bold, // 폰트 두께
+          ),
+          elevation: 5.0,
+          shadowColor: Colors.grey
+        ),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
@@ -259,105 +272,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // Future<dynamic> showEditStatefulDialogBuilder(BuildContext context, TodoType todo) async {
-  //   DateTime _startDate = todo.startDate!;
-  //   DateTime _endDate = todo.endDate!;
-  //   _todoController.text = todo.title;
-  //
-  //   await showDialog<void>(
-  //     context: context,
-  //     builder: (_) {
-  //       return AlertDialog(
-  //         content: Container(
-  //           width: double.maxFinite, // 너비를 최대화
-  //           constraints: BoxConstraints(maxHeight: 300), // 최대 높이 설정
-  //           child: StatefulBuilder(
-  //             builder: (__, StateSetter setState) {
-  //               return SingleChildScrollView( // 스크롤 가능하게 감싸기
-  //                 child: Column(
-  //                   mainAxisSize: MainAxisSize.min,
-  //                   children: [
-  //                     TextField(
-  //                       controller: _todoController,
-  //                       maxLines: null, // 여러 줄 입력 가능
-  //                       decoration: InputDecoration(
-  //                         hintText: '할 일을 입력하세요',
-  //                         counterText: '', // 길이 카운터 숨기기
-  //                       ),
-  //                     ),
-  //                     Row(
-  //                       children: [
-  //                         TextButton(
-  //                           onPressed: () async {
-  //                             await jdatePicker(DateTime.now());
-  //                             setState(() {
-  //                               _startDate = _selectedDate;
-  //                               _endDate = _startDate;
-  //                             });
-  //                           },
-  //                           child: Column(
-  //                             crossAxisAlignment: CrossAxisAlignment.start,
-  //                             children: [
-  //                               Text(
-  //                                 DateFormat('yyyy/MM/dd').format(_startDate),
-  //                                 overflow: TextOverflow.ellipsis,
-  //                                 maxLines: 1,
-  //                               ),
-  //                               Text(
-  //                                 DateFormat('HH:mm').format(_startDate),
-  //                                 overflow: TextOverflow.ellipsis,
-  //                                 maxLines: 1,
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                         Text(" 부터  "),
-  //                         TextButton(
-  //                           onPressed: () async {
-  //                             await jdatePicker(_startDate);
-  //                             setState(() {
-  //                               _endDate = _selectedDate;
-  //                             });
-  //                           },
-  //                           child: Column(
-  //                             crossAxisAlignment: CrossAxisAlignment.start,
-  //                             children: [
-  //                               Text(
-  //                                 DateFormat('yyyy/MM/dd').format(_endDate),
-  //                                 overflow: TextOverflow.ellipsis,
-  //                                 maxLines: 1,
-  //                               ),
-  //                               Text(
-  //                                 DateFormat('HH:mm').format(_endDate),
-  //                                 overflow: TextOverflow.ellipsis,
-  //                                 maxLines: 1,
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                         Text(" 까지"),
-  //                       ],
-  //                     ),
-  //                   ],
-  //                 ),
-  //               );
-  //             },
-  //           ),
-  //         ),
-  //         actions: <Widget>[
-  //           TextButton(
-  //             onPressed: () {
-  //               _editTodo(todo, TodoType(_todoController.text, _startDate, _endDate));
-  //               _todoController.clear();
-  //               Navigator.pop(context);
-  //             },
-  //             child: Text('수정', style: TextStyle(color: Colors.indigo)),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
   Future<dynamic> showEditStatefulDialogBuilder(BuildContext context, TodoType todo) async {
     DateTime _startDate = todo.startDate!;
     DateTime _endDate = todo.endDate!;
@@ -478,8 +392,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
         appBar: AppBar(
-
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          leading: Icon(Icons.crisis_alert_outlined),
+          titleSpacing: 0,
+          // backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: Text(widget.title),
           actions: <Widget>[],
         ),
@@ -497,9 +412,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: [
                     Switch(
                       activeColor: Colors.indigo, // 활성화 시 Thumb(콩알) 컬러
-                      activeTrackColor: Colors.blueAccent[100], // 활성화 시 스위치 바탕 컬러
+                      activeTrackColor: Colors.blueAccent[50], // 활성화 시 스위치 바탕 컬러
                       inactiveThumbColor: Colors.green, // 비활성화 시 콩알 컬러
-                      inactiveTrackColor: Colors.white, // 비활성화 시 스위치 바탕색
+                      inactiveTrackColor: Colors.green[100], // 비활성화 시 스위치 바탕색
                       // trackColor: MaterialStateProperty.all(Colors.yellow), // 활성화건 비활성화건 무조건 스위치 바탕색은 이것(바뀌게 하고 싶으면 쓰지마)
                       // thumbColor: MaterialStateProperty.all(Colors.green), // 활성화했건 비활성화했건 무조건 Thumb 컬러는 이것(바뀌게 하고 싶으면 쓰지마)
                       value: _checkBoxValue1!, // 스위치 값
